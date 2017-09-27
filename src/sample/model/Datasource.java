@@ -96,6 +96,9 @@ public class Datasource {
     public static final String QUERY_ARTIST = "SELECT " + COLUMN_ARTIST_ID + " FROM " + TABLE_ARTISTS + " WHERE " + COLUMN_ARTIST_NAME + " = ?";
     public static final String QUERY_ALBUM = "SELECT " + COLUMN_ALBUM_ID + " FROM " + TABLE_ALBUMS + " WHERE " + COLUMN_ALBUM_NAME + " = ?";
 
+    public static final String QUERY_ALBUMS_BY_ARTIST_ID = "SELECT * FROM " + TABLE_ALBUMS + " WHERE " + COLUMN_ALBUM_ARTIST + " = ? ORDER BY " + COLUMN_ALBUM_NAME;
+
+    public static final String UPPDATE_ARTIST_NAME = "UPDATE " + TABLE_ARTISTS + " SET " + COLUMN_ARTIST_NAME + " = ? WHERE " + COLUMN_ARTIST_ID + " = ?";
 
     private Connection conn;
 
@@ -106,6 +109,8 @@ public class Datasource {
 
     private PreparedStatement queryArtist;
     private PreparedStatement queryAlbum;
+    private PreparedStatement queryAlbumsByArtistId;
+    private PreparedStatement updateArtistName;
 
     private static Datasource instance = new Datasource();
 
@@ -126,6 +131,8 @@ public class Datasource {
             insertIntoSongs = conn.prepareStatement(INSERT_SONGS);
             queryArtist = conn.prepareStatement(QUERY_ARTIST);
             queryAlbum = conn.prepareStatement(QUERY_ALBUM);
+            queryAlbumsByArtistId = conn.prepareStatement(QUERY_ALBUMS_BY_ARTIST_ID);
+            updateArtistName = conn.prepareStatement(UPPDATE_ARTIST_NAME);
 
             return true;
         } catch (SQLException e) {
@@ -161,6 +168,14 @@ public class Datasource {
                 queryAlbum.close();
             }
 
+            if (updateArtistName != null) {
+                updateArtistName.close();
+            }
+
+            if (queryAlbumsByArtistId != null) {
+                queryAlbumsByArtistId.close();
+            }
+
             if (conn != null) {
                 conn.close();
             }
@@ -189,6 +204,11 @@ public class Datasource {
 
             List<Artist> artists = new ArrayList<>();
             while (results.next()) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    System.out.println("Interrupted " + e.getMessage());
+                }
                 Artist artist = new Artist();
                 artist.setId(results.getInt(INDEX_ARTIST_ID));
                 artist.setName(results.getString(INDEX_ARTIST_NAME));
@@ -199,6 +219,26 @@ public class Datasource {
 
         } catch (SQLException e) {
             System.out.println("Query failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<Album> queryAlbumsForArtistId(int id) {
+        try {
+            queryAlbumsByArtistId.setInt(1, id);
+            ResultSet results = queryAlbumsByArtistId.executeQuery();
+
+            List<Album> albums = new ArrayList<>();
+            while (results.next()) {
+                Album album = new Album();
+                album.setId(results.getInt(1));
+                album.setName(results.getString(2));
+                album.setArtistId(id);
+                albums.add(album);
+            }
+            return albums;
+        } catch (SQLException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -323,6 +363,20 @@ public class Datasource {
             } else {
                 throw new SQLException("Couldn't get _id for album");
             }
+        }
+    }
+
+    public boolean updateArtistName(int id, String newName) {
+        try {
+            updateArtistName.setString(1, newName);
+            updateArtistName.setInt(2, id);
+            int affectedRecords = updateArtistName.executeUpdate();
+
+            return affectedRecords == 1;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

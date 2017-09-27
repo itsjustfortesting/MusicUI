@@ -12,7 +12,7 @@ public class Datasource {
     public static final String DB_NAME = "music.db";
 
     //    public static final String CONNECTION_STRING = "jdbc:sqlite:D:\\databases\\" + DB_NAME;
-    public static final String CONNECTION_STRING = "jdbc:sqlite:C:\\rozne\\java_learn\\Udemy\\Databases-SQL-Injection-Attacks-and-Prepared-Statements-Source-code\\" + DB_NAME;
+    public static final String CONNECTION_STRING = "jdbc:sqlite:C:\\Java\\Kurs\\MusicUI\\" + DB_NAME;
 
     public static final String TABLE_ALBUMS = "albums";
     public static final String COLUMN_ALBUM_ID = "_id";
